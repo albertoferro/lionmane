@@ -68,7 +68,6 @@ class Busqueda extends Component {
       </div>
     )
   }
-
 }
 
 const mapStateToProps = state => {

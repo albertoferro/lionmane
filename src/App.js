@@ -38,8 +38,6 @@ const mapDispatchToProps = dispatch => {
   return {
     increaseCounter: () => dispatch(increaseCounter()),
     decreaseCounter: () => dispatch(decreaseCounter()),
-    termStore: () => dispatch(termStore()),
-    imagenStore: () => dispatch(imagenStore()),
   }
 }
 

@@ -1,28 +1,104 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import { act } from 'react-dom/test-utils';
-import Buscador from '../Components/Buscador';
+import * as React from 'react'
+import ReactDOM from 'react-dom'
+import {render, screen} from '../'
 
-let container;
+test('renders div into document', () => {
+  const ref = React.createRef()
+  const {container} = render(<div ref={ref} />)
+  expect(container.firstChild).toBe(ref.current)
+})
 
-beforeEach(() => {
-    container = document.createElement('div');
-    document.body.appendChild(container);
-});
+test('works great with react portals', () => {
+  class MyPortal extends React.Component {
+    constructor(...args) {
+      super(...args)
+      this.portalNode = document.createElement('div')
+      this.portalNode.dataset.testid = 'my-portal'
+    }
+    
+    componentDidMount() {
+      document.body.appendChild(this.portalNode)
+    }
+    componentWillUnmount() {
+      this.portalNode.parentNode.removeChild(this.portalNode)
+    }
+    render() {
+      return ReactDOM.createPortal(
+        <Greet greeting="Hello" subject="World" />,
+        this.portalNode,
+      )
+    }
+  }
 
-afterEach(() => {
-    document.body.removeChild(container);
-    container = null;
-});
+  function Greet({greeting, subject}) {
+    return (
+      <div>
+        <strong>
+          {greeting} {subject}
+        </strong>
+      </div>
+    )
+  }
 
-it('can render and update a counter', () => {
-    // Prueba la primer renderización y componentDidMount
-    act(() => { ReactDOM.render(<Buscador />, container); }); const button = container.querySelector('button');
-    const label = container.querySelector('p');
-    expect(label.textContent).toBe('You clicked 0 times');
-    expect(document.title).toBe('You clicked 0 times');
+  const {unmount} = render(<MyPortal />)
+  expect(screen.getByText('Hello World')).toBeInTheDocument()
+  const portalNode = screen.getByTestId('my-portal')
+  expect(portalNode).toBeInTheDocument()
+  unmount()
+  expect(portalNode).not.toBeInTheDocument()
+})
 
-    // Prueba la segunda renderización y componentDidUpdate
-    act(() => { button.dispatchEvent(new MouseEvent('click', { bubbles: true })); }); expect(label.textContent).toBe('You clicked 1 times');
-    expect(document.title).toBe('You clicked 1 times');
-});
+test('returns baseElement which defaults to document.body', () => {
+  const {baseElement} = render(<div />)
+  expect(baseElement).toBe(document.body)
+})
+
+test('supports fragments', () => {
+  class Test extends React.Component {
+    render() {
+      return (
+        <div>
+          <code>DocumentFragment</code> is pretty cool!
+        </div>
+      )
+    }
+  }
+
+  const {asFragment} = render(<Test />)
+  expect(asFragment()).toMatchSnapshot()
+})
+
+test('renders options.wrapper around node', () => {
+  const WrapperComponent = ({children}) => (
+    <div data-testid="wrapper">{children}</div>
+  )
+
+  const {container} = render(<div data-testid="inner" />, {
+    wrapper: WrapperComponent,
+  })
+
+  expect(screen.getByTestId('wrapper')).toBeInTheDocument()
+  expect(container.firstChild).toMatchInlineSnapshot(`
+<div
+  data-testid="wrapper"
+>
+  <div
+    data-testid="inner"
+  />
+</div>
+`)
+})
+
+test('flushes useEffect cleanup functions sync on unmount()', () => {
+  const spy = jest.fn()
+  function Component() {
+    React.useEffect(() => spy, [])
+    return null
+  }
+  const {unmount} = render(<Component />)
+  expect(spy).toHaveBeenCalledTimes(0)
+
+  unmount()
+
+  expect(spy).toHaveBeenCalledTimes(1)
+})
