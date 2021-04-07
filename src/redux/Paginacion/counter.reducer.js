@@ -16,7 +16,9 @@ const reducer = (state = INITIAL_STATE, action) => {
                 return {
                     ...state, count: state.count - 1,
                 };
-            };
+            }else{
+                return state;
+            }
             break;
 
         default: return state;

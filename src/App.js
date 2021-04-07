@@ -19,10 +19,12 @@ function App(props) {
 
       <Busqueda></Busqueda>
       { props.termino !== '' ?
-        <div className="container" style={{ flex: 1 }}>
+        <div className="container " style={{ flex: 1 }}>
           <div className="">Pagina Actual: {props.count}</div>
-          <button onClick={() => props.decreaseCounter()}>Pagina Anterior</button>
-          <button onClick={() => props.increaseCounter()}>Pagina Siguiente</button>
+          <div className="row" style={{ flex: 1, justifyContent : 'space-between' }}>
+            <button className="btn px-2  py-2" onClick={() => props.decreaseCounter()}>Pagina Anterior</button>
+            <button className="btn px-2  py-2" onClick={() => props.increaseCounter()}>Pagina Siguiente</button>
+          </div>
         </div> : ''}
     </div>
   );
